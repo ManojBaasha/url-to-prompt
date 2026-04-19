@@ -1,0 +1,6 @@
+apis:
+  main:
+    root: api/openapi-snapshot.yaml
+
+extends:
+  - recommended

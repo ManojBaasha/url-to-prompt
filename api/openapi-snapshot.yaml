@@ -1,0 +1,530 @@
+openapi: 3.1.0
+info:
+  title: Design Prompt API
+  version: 0.1.0
+  description: Capture a URL's visual design language and return a structured,
+    cached design prompt.
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+      required:
+        - status
+        - timestamp
+    GenerateResponse:
+      type: object
+      properties:
+        url:
+          type: object
+          properties:
+            original:
+              type: string
+            normalized:
+              type: string
+            hash:
+              type: string
+          required:
+            - original
+            - normalized
+            - hash
+        prompt:
+          type: object
+          properties:
+            summary:
+              type: string
+              description: 1-2 sentence overall vibe of the site's visual design
+            typography:
+              type: object
+              properties:
+                primaryFontFamily:
+                  type: string
+                secondaryFontFamily:
+                  type: string
+                headingStyle:
+                  type: string
+                  description: e.g. 'bold serif with tight tracking'
+                bodyStyle:
+                  type: string
+                notableTreatments:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - primaryFontFamily
+                - headingStyle
+                - bodyStyle
+                - notableTreatments
+            colorPalette:
+              type: object
+              properties:
+                background:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                foreground:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                accent:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                additional:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      hex:
+                        type: string
+                        description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                      role:
+                        type: string
+                        description: e.g. 'subtle border', 'success state'
+                    required:
+                      - hex
+                      - role
+              required:
+                - background
+                - foreground
+                - accent
+                - additional
+            layout:
+              type: object
+              properties:
+                gridStyle:
+                  type: string
+                spacingDensity:
+                  type: string
+                  enum:
+                    - tight
+                    - comfortable
+                    - airy
+                alignment:
+                  type: string
+                notableLayoutPatterns:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - gridStyle
+                - spacingDensity
+                - alignment
+                - notableLayoutPatterns
+            components:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                required:
+                  - name
+                  - description
+            mood:
+              type: array
+              items:
+                type: string
+              minItems: 3
+              maxItems: 6
+            inspirationKeywords:
+              type: array
+              items:
+                type: string
+              description: Designers, eras, or movements the site evokes
+          required:
+            - summary
+            - typography
+            - colorPalette
+            - layout
+            - components
+            - mood
+            - inspirationKeywords
+        meta:
+          type: object
+          properties:
+            cached:
+              type: boolean
+            modelUsed:
+              type: string
+            generatedAt:
+              type: string
+            expiresAt:
+              type: string
+            screenshotCount:
+              type: number
+          required:
+            - cached
+            - modelUsed
+            - generatedAt
+            - expiresAt
+            - screenshotCount
+      required:
+        - url
+        - prompt
+        - meta
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+      required:
+        - error
+    GenerateBody:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        refresh:
+          type: boolean
+          default: false
+      required:
+        - url
+    ListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptItem"
+        pagination:
+          type: object
+          properties:
+            limit:
+              type: number
+            offset:
+              type: number
+            total:
+              type: number
+            hasMore:
+              type: boolean
+          required:
+            - limit
+            - offset
+            - total
+            - hasMore
+      required:
+        - items
+        - pagination
+    PromptItem:
+      type: object
+      properties:
+        hash:
+          type: string
+        url:
+          type: object
+          properties:
+            original:
+              type: string
+            normalized:
+              type: string
+          required:
+            - original
+            - normalized
+        prompt:
+          type: object
+          properties:
+            summary:
+              type: string
+              description: 1-2 sentence overall vibe of the site's visual design
+            typography:
+              type: object
+              properties:
+                primaryFontFamily:
+                  type: string
+                secondaryFontFamily:
+                  type: string
+                headingStyle:
+                  type: string
+                  description: e.g. 'bold serif with tight tracking'
+                bodyStyle:
+                  type: string
+                notableTreatments:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - primaryFontFamily
+                - headingStyle
+                - bodyStyle
+                - notableTreatments
+            colorPalette:
+              type: object
+              properties:
+                background:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                foreground:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                accent:
+                  type: string
+                  description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                additional:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      hex:
+                        type: string
+                        description: Hex color string, e.g. '#0A0A0A' or '#FFFFFF'
+                      role:
+                        type: string
+                        description: e.g. 'subtle border', 'success state'
+                    required:
+                      - hex
+                      - role
+              required:
+                - background
+                - foreground
+                - accent
+                - additional
+            layout:
+              type: object
+              properties:
+                gridStyle:
+                  type: string
+                spacingDensity:
+                  type: string
+                  enum:
+                    - tight
+                    - comfortable
+                    - airy
+                alignment:
+                  type: string
+                notableLayoutPatterns:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - gridStyle
+                - spacingDensity
+                - alignment
+                - notableLayoutPatterns
+            components:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                required:
+                  - name
+                  - description
+            mood:
+              type: array
+              items:
+                type: string
+              minItems: 3
+              maxItems: 6
+            inspirationKeywords:
+              type: array
+              items:
+                type: string
+              description: Designers, eras, or movements the site evokes
+          required:
+            - summary
+            - typography
+            - colorPalette
+            - layout
+            - components
+            - mood
+            - inspirationKeywords
+        meta:
+          type: object
+          properties:
+            modelUsed:
+              type: string
+            screenshotCount:
+              type: number
+            createdAt:
+              type: string
+            updatedAt:
+              type: string
+            expiresAt:
+              type: string
+            hitCount:
+              type: number
+            isExpired:
+              type: boolean
+          required:
+            - modelUsed
+            - screenshotCount
+            - createdAt
+            - updatedAt
+            - expiresAt
+            - hitCount
+            - isExpired
+      required:
+        - hash
+        - url
+        - prompt
+        - meta
+  parameters: {}
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      operationId: health
+      security: []
+      responses:
+        "200":
+          description: Health check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/generate:
+    post:
+      summary: Generate a design prompt for a URL
+      operationId: generate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateBody"
+      responses:
+        "200":
+          description: Design prompt (cache hit or freshly generated)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: URL blocked (SSRF, bad scheme, private address)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Upstream failure (screenshot or vision)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/prompts:
+    get:
+      summary: List cached design prompts
+      operationId: listPrompts
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type:
+              - integer
+              - "null"
+            minimum: 0
+            default: 0
+          required: false
+          name: offset
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+          required: false
+          name: q
+          in: query
+        - schema:
+            type: string
+            default: "false"
+          required: false
+          name: includeExpired
+          in: query
+      responses:
+        "200":
+          description: Paginated cached prompts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/prompts/{hash}:
+    get:
+      summary: Fetch a single cached prompt by its hash
+      operationId: getPromptByHash
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+            pattern: ^[a-f0-9]+$
+          required: true
+          name: hash
+          in: path
+      responses:
+        "200":
+          description: A single cached prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptItem"
+        "400":
+          description: Invalid hash
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+webhooks: {}
