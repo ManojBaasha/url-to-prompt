@@ -445,7 +445,7 @@ app.get("/openapi.json", (c) =>
   )
 );
 
-const REDOC_HTML = `<!DOCTYPE html>
+const DOCS_HTML = `<!DOCTYPE html>
 <html>
   <head>
     <title>Design Prompt API</title>
@@ -454,12 +454,12 @@ const REDOC_HTML = `<!DOCTYPE html>
     <style>body { margin: 0; padding: 0; }</style>
   </head>
   <body>
-    <redoc spec-url="/api/openapi.json"></redoc>
-    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+    <script id="api-reference" data-url="/api/openapi.json"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   </body>
 </html>`;
 
-app.get("/docs", (c) => c.html(REDOC_HTML));
+app.get("/docs", (c) => c.html(DOCS_HTML));
 
 // -------- Vercel Node adapter --------
 
