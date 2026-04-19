@@ -428,8 +428,12 @@ app.openapi(getRoute, async (c) => {
 
 // -------- OpenAPI spec + Redoc docs (public) --------
 
-app.get("/openapi.json", (c) =>
-  c.json(
+app.get("/openapi.json", (c) => {
+  const host = c.req.header("host") ?? "localhost:3000";
+  const proto =
+    c.req.header("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+  return c.json(
     app.getOpenAPI31Document({
       openapi: "3.1.0",
       info: {
@@ -438,12 +442,10 @@ app.get("/openapi.json", (c) =>
         description:
           "Capture a URL's visual design language and return a structured, cached design prompt.",
       },
-      servers: [
-        { url: "http://localhost:3000", description: "Local dev" },
-      ],
+      servers: [{ url: `${proto}://${host}` }],
     })
-  )
-);
+  );
+});
 
 const DOCS_HTML = `<!DOCTYPE html>
 <html>
